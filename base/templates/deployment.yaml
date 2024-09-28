@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.metadata.name}}
+  namespace: {{ .Values.metadata.namespace}}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app: {{ .Values.metadata.app }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.metadata.app }}
+    spec:
+      containers:
+        - envFrom:
+            - configMapRef:
+                name: {{ .Values.containers.env }}
+          image: {{ .Values.image }}
+          name: {{ .Values.metadata.name }}-container
+          ports:
+          {{- range .Values.containers.ports}}
+            - containerPort: {{ . }}
+          {{- end}}
+          resources:
+            requests:
+              cpu: {{ .Values.requests.cpu }}
+              memory: {{ .Values.requests.memory }}
+            limits:
+              cpu: {{ .Values.limits.cpu }}
+              memory: {{ .Values.limits.memory }}
+      imagePullSecrets:
+        - name: dockerauth

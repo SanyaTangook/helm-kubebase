@@ -1,0 +1,46 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {{ .Values.metadata.name }}-virtual
+  namespace: {{ .Values.metadata.namespace }}
+spec:
+  hosts:
+  {{- range $host := .Values.VirtualService.hosts }}
+    - "{{ $host }}"
+  {{- end }}
+  gateways:
+  {{- range $gateway := .Values.VirtualService.gateways }}
+    - "{{ $gateway }}"
+  {{- end }}
+  http:
+    - match:
+        - uri:
+            prefix: {{ .Values.VirtualService.matchHttp.prefix }}
+      route:
+        - destination:
+            port:
+              number: {{ .Values.VirtualService.matchHttp.route.port }}
+            host: {{ .Values.VirtualService.matchHttp.route.host }}
+      corsPolicy:
+        allowOrigin:
+          - "{{ .Values.VirtualService.matchHttp.route.corsPolicy.allowOrigin }}"
+        allowMethods:
+          {{- range .Values.VirtualService.matchHttp.route.corsPolicy.allowMethods }}
+          - {{ . }}
+          {{- end }}
+        allowHeaders:
+          {{- range .Values.VirtualService.matchHttp.route.corsPolicy.allowHeaders }}
+          - "{{ . }}"
+          {{- end }}
+        maxAge: {{ .Values.VirtualService.matchHttp.route.corsPolicy.maxAge }}
+        allowCredentials: {{ .Values.VirtualService.matchHttp.route.corsPolicy.allowCredentials }}
+    - match:
+      - port: {{ .Values.VirtualService.matchgRPC.port }}
+        headers:
+          X-gRPC-Service:
+            exact: {{ .Values.VirtualService.matchgRPC.headers.XgRPCService }}
+      route:
+      - destination:
+          host: {{ .Values.VirtualService.matchgRPC.route.host }}
+          port:
+            number: {{ .Values.VirtualService.matchgRPC.route.port }}

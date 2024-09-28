@@ -1,0 +1,63 @@
+metadata:
+  name: name
+  namespace: name
+  app: name
+
+Service:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8011
+      targetPort: 80
+    - name: gRPC
+      protocol: TCP
+      port: 4321
+      targetPort: 4321
+replicaCount: 1
+image: user/image
+containers:
+  env: test
+  ports:
+    - 3001
+    - 3000
+requests:
+  cpu: 300m
+  memory: 300Mi
+limits:
+  cpu: 500m
+  memory: 400Mi
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+VirtualService:
+  hosts:
+    - "*"
+  gateways:
+    - "*"
+  matchHttp:
+    prefix: /api/auth
+    route:
+      host:
+      port: 4010
+      corsPolicy:
+        allowOrigin: "http://localhost:3000"
+        allowMethods:
+          - POST
+          - GET
+          - PATCH
+          - DELETE
+        allowHeaders:
+          - "*"
+        maxAge: "24h"
+        allowCredentials: true
+  matchgRPC:
+    port:
+    headers:
+      XgRPCService: authen
+    route:
+      host:
+      port:
